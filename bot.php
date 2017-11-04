@@ -144,7 +144,7 @@ switch ($data->type) {
 
 //С помощью messages.send отправляем ответное сообщение 
     $request_params = array( 
-      'message' => "Hello, {$user_name}!", 
+      'message' => $message, 
       'user_id' => $user_id, 
       'access_token' => $token, 
       'v' => '5.0' 
