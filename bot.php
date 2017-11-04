@@ -25,7 +25,7 @@ switch ($data->type) {
   case 'message_new': 
   	$message = "";
   	$yesNo = '<br>1. Да<br>2. Нет';
-  	$user_info = json_decode(file_get_contents("https://api.vk.com/method/users.get?user_ids={$user_id}&v=5.0"));
+    $user_info = json_decode(file_get_contents("https://api.vk.com/method/users.get?user_ids={$user_id}&v=5.0")); 
   	$noMessage = 'Нет такого варианта ответа';
     $body = $data->object->body;
   //...получаем id его автора 
@@ -71,7 +71,7 @@ switch ($data->type) {
     			$message = 'Сколько вам лет?(напишите цифру)';
     			$sql = $mysqli->query("UPDATE `vitalert` SET `status`= 2 WHERE `user_id` = $user_id");
     		}else{
-    			$message = 'Нет такого варианта ответа';
+    			$message = $noMessage;
     		}
     		break;
     	case '4':
@@ -80,14 +80,57 @@ switch ($data->type) {
     		break;
     	case '5':
     		if($body == '1'){
+    			$message = 'Как вы оцениваете свое самочувствие?<br>1. Отличное<br>2. Хорошее<br>3. Удовлетворительное<br>4. Плохое<br>5. Ужасное';
+    			$sql = $mysqli->query("UPDATE `vitalert` SET `status`= 6 WHERE `user_id` = $user_id");
+    		}elseif($body == '2'){
     			$message = 'Ваш вес в кг? (напишите цифру)';
     			$sql = $mysqli->query("UPDATE `vitalert` SET `status`= 4 WHERE `user_id` = $user_id");
-    		}elseif($body == '2'){
-    			$message = 'Сколько вам лет?(напишите цифру)';
-    			$sql = $mysqli->query("UPDATE `vitalert` SET `status`= 2 WHERE `user_id` = $user_id");
     		}else{
-    			$message = 'Нет такого варианта ответа';
+    			$message =  $noMessage;
     		}
+    		break;
+    	case '6':
+    		$message = 'Ваш вид работы ?<br>1. Полностью неактивный (постельный режим)<br> 2. Сидячий (сидячая малоподвижная работа, низкий уровень физических нагрузок)<br>3. Стоячая работа с низкой подвижностью<br>4. Сидячая и стоячая работа с умеренной подвижностью<br>5. Тяжелый физический труд, высокий уровень физических нагрузок в течение дня';
+    		$sql = $mysqli->query("UPDATE `vitalert` SET `healthStat` = '$body', `status`= 7 WHERE `user_id` = $user_id");
+    		break;
+    	case '7':
+    		$message = 'Занимаетесь ли вы дополнительной активностью (фитнес, тренажерный зал, бег и т.д.)?'.$yesNo.'';
+    		$sql = $mysqli->query("UPDATE `vitalert` SET `workType` = '$body', `status`= 8 WHERE `user_id` = $user_id");
+    		break;
+    	case '8':
+    		if($body == '1'){
+    			$message = 'Количество занятий в неделю?(напишите цифру)';
+    			$sql = $mysqli->query("UPDATE `vitalert` SET `activity` = '$body', `status`= 9 WHERE `user_id` = $user_id");
+    		}elseif($body == '2'){
+    			$message = 'Ваш тип сна<br>1. Беспокойный<br>2. Нормальный<br>3. С пробуждениями<br>4. Глубокий';
+    			$sql = $mysqli->query("UPDATE `vitalert` SET `activity` = '$body', `status`= 13 WHERE `user_id` = $user_id");
+    		}else{
+    			$message = $noMessage;
+    		}
+    		break;
+    	case '9':
+    		$message = 'Вид активности?<br>1. Бег<br>2. Ходьба<br>3. Фитнес<br>4. Силовой тренинг<br>5. Плавание';
+    		$sql = $mysqli->query("UPDATE `vitalert` SET `trainCount` = '$body', `status`= 10 WHERE `user_id` = $user_id");
+    		break;
+    	case '10':
+    		$message = 'Продолжительность занятий в минутах?';
+    		$sql = $mysqli->query("UPDATE `vitalert` SET `activityType` = '$body', `status`= 11 WHERE `user_id` = $user_id");
+    		break;
+    	case '11':
+    		$message = 'Тип нагрузки от 1(Легкая) до 3(Тяжелая)';
+    		$sql = $mysqli->query("UPDATE `vitalert` SET `trainDuration` = '$body', `status`= 12 WHERE `user_id` = $user_id");
+    		break;
+    	case '12':
+    		$message = 'Ваш тип сна<br>1. Беспокойный<br>2. Нормальный<br>3. С пробуждениями<br>4. Глубокий';
+    		$sql = $mysqli->query("UPDATE `vitalert` SET `loadType` = '$body', `status`= 13 WHERE `user_id` = $user_id");
+    		break;
+    	case '13':
+    		$message = 'Есть ли у вас вредные привычки?'.$yesNo.'';
+    		$sql = $mysqli->query("UPDATE `vitalert` SET `sleep` = '$body', `status`= 14 WHERE `user_id` = $user_id");
+    		break;
+    	case '14':
+    		$message = 'Спасибо за опрос :)';
+    		$sql = $mysqli->query("UPDATE `vitalert` SET `habits` = '$body' WHERE `user_id` = $user_id");
     		break;
     	default:
     		# code...
@@ -120,7 +163,7 @@ break;
 } 
 // Проверка статуса
 function checkStatus($mysqli,$user_id){
-  $sql = $mysqli->query("SELECT user_id, status FROM `hackaton`");
+  $sql = $mysqli->query("SELECT user_id, status FROM `vitalert`");
   if($sql->num_rows > 0) {
       while($row = $sql->fetch_assoc()) {
         if($row['user_id'] == $user_id){
